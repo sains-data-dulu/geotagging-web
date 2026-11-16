@@ -53,6 +53,19 @@ function getFolder() {
   return it.hasNext() ? it.next() : DriveApp.createFolder(FOLDER_NAME);
 }
 
-function doGet() { return json({ ok: true, info: 'Endpoint Geotag Grid aktif' }); }
+// GET ?action=data -> seluruh data untuk halaman monitoring
+function doGet(e) {
+  if (e && e.parameter && e.parameter.action === 'data') {
+    const sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAME);
+    if (!sh || sh.getLastRow() < 2) return json({ ok: true, records: [] });
+    const values = sh.getDataRange().getValues();
+    const head = values.shift().map(String);
+    const records = values.filter(r => r[0] !== '').map(r => {
+      const o = {}; head.forEach((k, i) => o[k] = r[i] instanceof Date ? r[i].toISOString() : r[i]); return o;
+    });
+    return json({ ok: true, records: records, updated: new Date().toISOString() });
+  }
+  return json({ ok: true, info: 'Endpoint Geotag Grid aktif' });
+}
 
 function json(o) { return ContentService.createTextOutput(JSON.stringify(o)).setMimeType(ContentService.MimeType.JSON); }

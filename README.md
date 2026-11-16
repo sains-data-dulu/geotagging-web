@@ -15,10 +15,13 @@ Web ini sepenuhnya statis, jadi bisa di-hosting gratis di **GitHub Pages**.
 
 | File | Fungsi |
 |---|---|
-| `index.html` | Kerangka halaman |
+| `index.html` | Halaman tagging untuk petugas |
+| `monitor.html` | Halaman monitoring, hanya untuk melihat, tanpa fitur tagging |
+| `config.js` | URL Google Apps Script bersama, opsional |
 | `css/style.css` | Tampilan |
 | `js/app.js` | Logika aplikasi: peta, GPS, foto, kuesioner, data, ekspor, kirim |
 | `js/zip.js` | Pembuat file ZIP untuk ekspor foto |
+| `js/monitor.js` | Logika halaman monitoring |
 | `data/grid.js` | Data 72 grid (hasil `selected_sample_split3x3.gpkg`) |
 | `vendor/leaflet/` | Library peta Leaflet 1.9.4 (disertakan, tanpa CDN) |
 | `sw.js`, `manifest.webmanifest`, `icon.svg` | Agar bisa dipasang di layar utama HP dan tetap bisa dibuka saat sinyal lemah |
@@ -97,7 +100,38 @@ Jika Apps Script sudah pernah dipasang dari versi sebelumnya, ganti kodenya deng
 
 Siapa pun yang memegang URL `/exec` dapat mengirim data ke sheet tersebut, jadi bagikan URL itu hanya kepada petugas.
 
-## 5. Kolom data
+### Isi URL sekali untuk semua petugas (opsional)
+
+Daripada menempelkan URL di setiap HP, URL bisa diisi sekali di file `config.js`:
+
+```js
+window.CONFIG = { APPS_SCRIPT_URL: "https://script.google.com/macros/s/…/exec" };
+```
+
+Setelah file ini di-upload ke GitHub, halaman tagging dan halaman monitoring otomatis memakai URL tersebut.
+
+## 5. Halaman monitoring
+
+Halaman monitoring dibuka di `https://<username>.github.io/geotag-grid/monitor.html`.
+Halaman ini hanya untuk memantau; tidak ada tombol tagging.
+
+Yang ditampilkan:
+- Peta berisi grid, batas sampel, dan titik tagging dari **semua petugas**. Data diambil dari Google Sheets.
+- Ringkasan: jumlah titik, sub-grid yang sudah di-tag (x/72), sampel yang selesai, jumlah petugas, dan persentase progres.
+- Filter per petugas.
+- Daftar sampel dengan mini-grid 3×3 dan waktu tagging terakhir. Ketuk sampel untuk zoom ke sana.
+- Daftar tagging terbaru. Ketuk salah satunya untuk melihat jawaban kuesioner dan link fotonya di Google Drive.
+- Data dimuat ulang otomatis setiap 1 menit. Intervalnya bisa diubah di ⚙︎, atau tekan tombol ⟳ untuk memuat ulang manual.
+
+Tampilannya menyesuaikan perangkat. Di laptop, panel berada di kiri. Di HP, panel berada di bawah dan bisa ditarik/diketuk untuk dibuka.
+
+Halaman monitoring membutuhkan Google Sheets (bagian 4) dengan **Code.gs versi terbaru**, karena halaman ini membaca data melalui URL yang sama (`…/exec?action=data`).
+Jika URL belum diisi, halaman hanya menampilkan grid dan data yang tersimpan di perangkat yang membukanya.
+
+Siapa pun yang memegang URL `/exec` dapat **membaca** seluruh isi sheet lewat halaman ini, jadi bagikan URL hanya kepada tim.
+Foto di Drive tetap mengikuti izin folder Drive Anda. Pemantau yang belum diberi akses ke folder **Geotag Grid - Foto** perlu dibagikan akses folder tersebut agar bisa membuka link foto.
+
+## 6. Kolom data
 
 `uuid, id_sub, id_polygon_asal, sub_posisi, petugas, waktu, latitude, longitude, akurasi_m, altitude_m, di_dalam_grid, jarak_ke_grid_m, jenis_tanaman, jenis_lahan, fase_tumbuh, topografi, pola_tanam, catatan, jumlah_foto, foto, dibuat, diubah`
 
@@ -107,7 +141,7 @@ Di Google Sheets ada tambahan kolom `foto_url` dan `diterima_server`.
 - `akurasi_m`: radius akurasi GPS dalam meter, sesuai laporan HP.
 - `jarak_ke_grid_m`: bernilai 0 jika titik berada di dalam grid.
 
-## Mengganti grid
+## 7. Mengganti grid
 
 Jika ingin memakai grid lain, buat ulang `data/grid.js` dari GPKG/GeoJSON (EPSG:4326). Isinya `window.GRID = <FeatureCollection>`.
 Setiap feature wajib memiliki properti `id_sub`, `id_polygon_asal`, dan `sub_posisi`.

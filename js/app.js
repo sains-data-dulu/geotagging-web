@@ -1,5 +1,5 @@
 "use strict";
-const APP_VERSION = "2.1.0";
+const APP_VERSION = "2.2.0";
 const OPSI = {
   jenis_lahan: ["Sawah Rawa", "Sawah Pasang Surut", "Sawah Irigasi", "Sawah Tadah Hujan", "Bukan Sawah"],
   fase_tumbuh: ["Persiapan Lahan", "Vegetatif Awal", "Vegetatif Akhir", "Generatif", "Panen", "Bukan Padi", "Bukan Sawah"],
@@ -29,7 +29,12 @@ const fmtDist = m => m >= 1000 ? (m / 1000).toFixed(2) + " km" : Math.round(m) +
 const store = {
   load() { try { return JSON.parse(localStorage.getItem(LS_DATA)) || []; } catch (e) { return []; } },
   save(r) { localStorage.setItem(LS_DATA, JSON.stringify(r)); },
-  settings() { const d = { petugas: "", url: "", akurasi: 10, basemap: "Satelit", showPoints: true, showSamples: true, showGrid: true }; try { return Object.assign(d, JSON.parse(localStorage.getItem(LS_SET)) || {}); } catch (e) { return d; } },
+  settings() {
+    const d = { petugas: "", url: "", akurasi: 10, basemap: "Satelit", showPoints: true, showSamples: true, showGrid: true };
+    try { Object.assign(d, JSON.parse(localStorage.getItem(LS_SET)) || {}); } catch (e) {}
+    if (!d.url && window.CONFIG && window.CONFIG.APPS_SCRIPT_URL) d.url = window.CONFIG.APPS_SCRIPT_URL;
+    return d;
+  },
   saveSettings(s) { localStorage.setItem(LS_SET, JSON.stringify(s)); }
 };
 // Foto disimpan di IndexedDB (kapasitas jauh lebih besar dari localStorage)
