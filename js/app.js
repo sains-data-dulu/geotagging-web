@@ -1,5 +1,5 @@
 "use strict";
-const APP_VERSION = "2.2.0";
+const APP_VERSION = "2.3.0";
 const OPSI = {
   jenis_lahan: ["Sawah Rawa", "Sawah Pasang Surut", "Sawah Irigasi", "Sawah Tadah Hujan", "Bukan Sawah"],
   fase_tumbuh: ["Persiapan Lahan", "Vegetatif Awal", "Vegetatif Akhir", "Generatif", "Panen", "Bukan Padi", "Bukan Sawah"],

@@ -113,8 +113,8 @@ map.on("zoomend", updateLabels);
 const samplesLayer = L.layerGroup(), pointsLayer = L.layerGroup();
 // sisakan ruang untuk panel saat zoom ke suatu area
 function fitTo(b, maxZoom) {
-  const o = window.innerWidth >= 900 ? { paddingTopLeft: [420, 40], paddingBottomRight: [80, 40] }
-    : { paddingTopLeft: [30, 30], paddingBottomRight: [70, $("#monPanel").offsetHeight + 30] };
+  const o = window.innerWidth >= 900 ? { paddingTopLeft: [$("#monPanel").classList.contains("hidden-desk") ? 40 : 420, 40], paddingBottomRight: [80, 40] }
+    : { paddingTopLeft: [30, 30], paddingBottomRight: [70, (sheetH || 260) + 30] };
   map.fitBounds(b, Object.assign(o, maxZoom ? { maxZoom } : {}));
 }
 function drawSamples() {
@@ -206,11 +206,51 @@ function updateUpdated() { if (lastLoad) $("#monUpdated").textContent = `Sumber:
 setInterval(updateUpdated, 15000);
 $("#fPetugas").onchange = e => { filterPetugas = e.target.value; render(); };
 
-/* panel HP: bisa dilipat */
+/* ---------- panel: bottom sheet yang bisa digeser (HP) / panel samping (laptop) ---------- */
+const sheet = $("#monPanel"), root = document.documentElement;
 const isMobile = () => window.innerWidth < 900;
-function collapseOnMobile() { if (isMobile()) $("#monPanel").classList.remove("expanded"); }
-$("#monHandle").onclick = () => $("#monPanel").classList.toggle("expanded");
-$("#monPanel").querySelector(".mon-stats").onclick = () => { if (isMobile()) $("#monPanel").classList.toggle("expanded"); };
+let sheetState = "peek", sheetH = 0;
+function snaps() {
+  const head = sheet.querySelector(".mon-head"), body = sheet.querySelector(".mon-body");
+  return { mini: head.offsetTop + head.offsetHeight + 12, peek: body.offsetTop + 6, full: Math.round(window.innerHeight * 0.88) };
+}
+function setSheetH(h) { sheetH = h; sheet.style.height = h + "px"; root.style.setProperty("--sheet-h", h + "px"); }
+function setSheet(state) {
+  if (!isMobile()) { sheet.style.height = ""; root.style.setProperty("--sheet-h", "0px"); sheetH = 0; return; }
+  sheetState = state; setSheetH(snaps()[state]);
+}
+function collapseOnMobile() { if (isMobile()) setSheet("mini"); }
+(() => {
+  let startY = 0, startH = 0, lastY = 0, lastT = 0, vel = 0, moved = false, active = false;
+  const zone = e => e.target.closest(".mon-handle") || (e.target.closest(".mon-head, .mon-stats, .mon-progress") && !e.target.closest("button, select, a, input"));
+  sheet.addEventListener("pointerdown", e => {
+    if (!isMobile() || !zone(e)) return;
+    active = true; moved = false; startY = lastY = e.clientY; lastT = e.timeStamp; startH = sheet.offsetHeight; vel = 0;
+    sheet.classList.add("dragging"); sheet.setPointerCapture(e.pointerId);
+  });
+  sheet.addEventListener("pointermove", e => {
+    if (!active) return;
+    const dy = e.clientY - startY; if (Math.abs(dy) > 6) moved = true;
+    const sp = snaps(); setSheetH(Math.max(sp.mini, Math.min(sp.full, startH - dy)));
+    if (e.timeStamp > lastT) vel = (e.clientY - lastY) / (e.timeStamp - lastT); lastY = e.clientY; lastT = e.timeStamp;
+  });
+  const end = e => {
+    if (!active) return; active = false; sheet.classList.remove("dragging");
+    const order = ["mini", "peek", "full"], sp = snaps();
+    if (!moved) { // ketuk: buka/tutup bertahap
+      setSheet(sheetState === "full" ? "peek" : sheetState === "peek" ? "full" : "peek"); return;
+    }
+    let target;
+    if (vel < -0.4) target = order.find(k => sp[k] > sheetH + 4) || "full";          // dilempar ke atas
+    else if (vel > 0.4) target = [...order].reverse().find(k => sp[k] < sheetH - 4) || "mini"; // dilempar ke bawah
+    else target = order.reduce((b, k) => Math.abs(sp[k] - sheetH) < Math.abs(sp[b] - sheetH) ? k : b, "mini"); // terdekat
+    setSheet(target);
+  };
+  sheet.addEventListener("pointerup", end); sheet.addEventListener("pointercancel", end);
+})();
+window.addEventListener("resize", () => setSheet(sheetState));
+/* laptop: panel bisa disembunyikan */
+$("#btnPanel").onclick = () => { sheet.classList.toggle("hidden-desk"); $("#btnPanel").classList.toggle("on", !sheet.classList.contains("hidden-desk")); };
 
 /* tombol peta */
 $("#btnRefresh").onclick = () => load(false).then(() => lastLoad && toast("Data diperbarui"));
@@ -238,5 +278,8 @@ let autoTimer = null;
 function startAuto() { clearInterval(autoTimer); if (mon.url && mon.auto > 0) autoTimer = setInterval(() => { if (!document.hidden) load(true); }, mon.auto * 1000); }
 document.addEventListener("visibilitychange", () => { if (!document.hidden && lastLoad && Date.now() - lastLoad > 30000) load(true); });
 
-if (!isMobile()) $("#monPanel").classList.add("expanded");
-render(); fitTo(gridLayer.getBounds()); updateLabels(); load(true); startAuto();
+// cek apakah css/style.css versi terbaru sudah ter-upload
+if (getComputedStyle(sheet).position !== "fixed") {
+  document.body.insertAdjacentHTML("afterbegin", `<div style="position:fixed;z-index:9999;top:0;left:0;right:0;background:#b91c1c;color:#fff;padding:12px 16px;font:600 14px system-ui">File <code>css/style.css</code> di GitHub belum versi terbaru. Upload ulang semua file dari zip, lalu muat ulang halaman ini.</div>`);
+}
+render(); setSheet("peek"); $("#btnPanel").classList.add("on"); fitTo(gridLayer.getBounds()); updateLabels(); load(true); startAuto();

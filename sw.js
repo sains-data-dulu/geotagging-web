@@ -1,5 +1,5 @@
 // Cache aplikasi agar tetap bisa dibuka saat sinyal lemah/offline.
-const APP = "geotag-app-v4", TILES = "geotag-tiles-v1", MAX_TILES = 3000;
+const APP = "geotag-app-v5", TILES = "geotag-tiles-v1", MAX_TILES = 3000;
 const SHELL = ["./","index.html","monitor.html","config.js","js/monitor.js","css/style.css","js/app.js","js/zip.js","data/grid.js","vendor/leaflet/leaflet.js","vendor/leaflet/leaflet.css",
   "vendor/leaflet/images/marker-icon.png","vendor/leaflet/images/layers.png","manifest.webmanifest","icon.svg"];
 self.addEventListener("install", e => { e.waitUntil(caches.open(APP).then(c => c.addAll(SHELL))); self.skipWaiting(); });

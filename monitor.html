@@ -7,7 +7,7 @@
 <title>Monitoring · Geotag Grid</title>
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
-<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/style.css?v=2.3">
 </head>
 <body class="monitor">
 
@@ -28,7 +28,7 @@
   <div class="mon-stats">
     <div class="stat"><b id="mPts">0</b><span>titik</span></div>
     <div class="stat"><b id="mGrid">0/72</b><span>sub-grid</span></div>
-    <div class="stat"><b id="mSmp">0/8</b><span>sampel selesai</span></div>
+    <div class="stat"><b id="mSmp">0/8</b><span>sampel ✓</span></div>
     <div class="stat"><b id="mPet">0</b><span>petugas</span></div>
   </div>
   <div class="mon-progress"><div class="bar big"><i id="mBar" style="width:0%"></i></div><span id="mPct">0%</span></div>
@@ -44,6 +44,7 @@
 </aside>
 
 <div class="map-tools mon-tools">
+  <button class="fab desk-only" id="btnPanel" aria-label="Tampilkan/sembunyikan panel"><svg><use href="#i-panel"/></svg></button>
   <button class="fab" id="btnLayer" aria-label="Lapisan peta"><svg><use href="#i-layers"/></svg></button>
   <button class="fab" id="btnFit" aria-label="Tampilkan semua"><svg><use href="#i-expand"/></svg></button>
 </div>
@@ -84,14 +85,15 @@
     <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></symbol>
     <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.3-5.7M20 4v5h-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
     <symbol id="i-expand" viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-panel" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M9 4v16" stroke="currentColor" stroke-width="2"/></symbol>
     <symbol id="i-nav" viewBox="0 0 24 24"><path d="m3 11 18-8-8 18-2-8-8-2Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
     <symbol id="i-camera" viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><circle cx="12" cy="13.5" r="3.5" fill="none" stroke="currentColor" stroke-width="2"/></symbol>
   </defs>
 </svg>
 
 <script src="vendor/leaflet/leaflet.js"></script>
-<script src="data/grid.js"></script>
-<script src="config.js"></script>
-<script src="js/monitor.js"></script>
+<script src="data/grid.js?v=2.3"></script>
+<script src="config.js?v=2.3"></script>
+<script src="js/monitor.js?v=2.3"></script>
 </body>
 </html>

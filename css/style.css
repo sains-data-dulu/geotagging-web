@@ -196,23 +196,25 @@ input:focus,select:focus,textarea:focus{border-color:var(--pri);background:#fff;
 .sw-dot.pt{background:#7c3aed!important;box-shadow:0 0 0 2px #fff,0 0 0 3px #7c3aed!important}
 
 /* ================= halaman monitoring ================= */
-.mon-panel{position:fixed;z-index:700;left:0;right:0;bottom:0;border-radius:24px 24px 0 0;padding:6px 16px max(14px,env(safe-area-inset-bottom));display:flex;flex-direction:column;max-height:76vh;transition:max-height .3s}
-.mon-handle{display:block;width:100%;height:20px;margin-bottom:2px}
-.mon-handle i{display:block;width:40px;height:5px;border-radius:999px;background:#cbd5e1;margin:6px auto 0}
+:root{--sheet-h:260px}
+.mon-panel{position:fixed;z-index:700;left:0;right:0;bottom:0;height:var(--sheet-h);border-radius:24px 24px 0 0;padding:0 16px;display:flex;flex-direction:column;transition:height .28s cubic-bezier(.2,.8,.2,1);overflow:hidden}
+.mon-panel.dragging{transition:none}
+.mon-handle{display:block;width:100%;height:26px;flex:none;touch-action:none;cursor:grab}
+.mon-handle i{display:block;width:44px;height:5px;border-radius:999px;background:#94a3b8;margin:10px auto 0}
+.mon-head,.mon-stats,.mon-progress{touch-action:none;flex:none}
 .mon-head{display:flex;align-items:center;gap:10px;margin-bottom:12px}
 .mon-head img{border-radius:10px}
 .mon-titles{flex:1;min-width:0}
 .mon-titles .brand-sub{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .icon-btn.busy svg{animation:spin 1s linear infinite}
-.mon-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;cursor:pointer}
-.mon-stats .stat{background:#f8fafc;box-shadow:none;border:1px solid var(--line);padding:10px 4px}
-.mon-stats .stat b{font-size:19px}
-.mon-stats .stat span{font-size:10.5px}
+.mon-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.mon-stats .stat{background:#f8fafc;box-shadow:none;border:1px solid var(--line);padding:9px 4px}
+.mon-stats .stat b{font-size:18px}
+.mon-stats .stat span{font-size:10.5px;white-space:nowrap}
 .mon-progress{display:flex;align-items:center;gap:10px;margin:12px 2px 4px;font-size:13px;font-weight:700;color:var(--pri-d)}
 .mon-progress .bar{flex:1;margin:0}
 .bar.big{height:8px}
-.mon-body{overflow-y:auto;margin:0 -16px;padding:10px 16px 4px;display:none;-webkit-overflow-scrolling:touch}
-.mon-panel.expanded .mon-body{display:block}
+.mon-body{flex:1;min-height:0;overflow-y:auto;margin:0 -16px;padding:10px 16px max(16px,env(safe-area-inset-bottom));-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
 .mon-sec{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:18px 2px 10px}
 .mon-note{font-size:12.5px;color:#92400e;background:#fffbeb;border:1px solid #fde68a;border-radius:12px;padding:10px 12px;line-height:1.5}
 .mon-note:empty{display:none}
@@ -226,13 +228,13 @@ input:focus,select:focus,textarea:focus{border-color:var(--pri);background:#fff;
 .ri-dot.out{background:#ea580c;box-shadow:0 0 0 2px #fff,0 0 0 3px #ea580c}
 .pop-photos{display:flex;flex-wrap:wrap;gap:6px}
 .pop-photos .btn{text-decoration:none;color:var(--ink2)}
-.monitor .map-tools{bottom:calc(240px + env(safe-area-inset-bottom))}
-.monitor .layer-panel{bottom:calc(240px + env(safe-area-inset-bottom))}
+.monitor .map-tools,.monitor .layer-panel{bottom:calc(var(--sheet-h) + 14px);transition:bottom .28s cubic-bezier(.2,.8,.2,1)}
+.desk-only{display:none!important}
 @media (min-width:900px){
-  .mon-panel{left:16px;top:16px;bottom:16px;right:auto;width:380px;max-height:none;border-radius:var(--r);padding:16px}
+  .mon-panel{left:16px;top:16px;bottom:16px;right:auto;width:380px;height:auto;border-radius:var(--r);padding:16px;transition:transform .3s cubic-bezier(.2,.8,.2,1)}
+  .mon-panel.hidden-desk{transform:translateX(calc(-100% - 24px))}
   .mon-handle{display:none}
-  .mon-stats{cursor:default}
-  .mon-body{display:block;flex:1}
-  .monitor .map-tools{bottom:24px}
-  .monitor .layer-panel{bottom:24px}
+  .mon-head,.mon-stats,.mon-progress{touch-action:auto}
+  .monitor .map-tools,.monitor .layer-panel{bottom:24px}
+  .desk-only{display:grid!important}
 }
