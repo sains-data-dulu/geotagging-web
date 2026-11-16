@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f766e">
+<title>Monitoring · Geotag Grid</title>
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="vendor/leaflet/leaflet.css">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body class="monitor">
+
+<div id="map"></div>
+
+<aside class="mon-panel card" id="monPanel">
+  <button class="mon-handle" id="monHandle" aria-label="Buka/tutup panel"><i></i></button>
+  <div class="mon-head">
+    <img src="icon.svg" alt="" width="34" height="34">
+    <div class="mon-titles">
+      <div class="brand-title">Monitoring Grid</div>
+      <div class="brand-sub" id="monUpdated">Memuat…</div>
+    </div>
+    <button class="icon-btn" id="btnRefresh" aria-label="Muat ulang"><svg><use href="#i-refresh"/></svg></button>
+    <button class="icon-btn" id="btnMonSet" aria-label="Pengaturan"><svg><use href="#i-gear"/></svg></button>
+  </div>
+
+  <div class="mon-stats">
+    <div class="stat"><b id="mPts">0</b><span>titik</span></div>
+    <div class="stat"><b id="mGrid">0/72</b><span>sub-grid</span></div>
+    <div class="stat"><b id="mSmp">0/8</b><span>sampel selesai</span></div>
+    <div class="stat"><b id="mPet">0</b><span>petugas</span></div>
+  </div>
+  <div class="mon-progress"><div class="bar big"><i id="mBar" style="width:0%"></i></div><span id="mPct">0%</span></div>
+
+  <div class="mon-body">
+    <label class="field"><span>Petugas</span><select id="fPetugas"><option value="">Semua petugas</option></select></label>
+    <div class="mon-note" id="monNote"></div>
+    <div class="mon-sec">Sampel</div>
+    <div class="sample-list" id="sampleList"></div>
+    <div class="mon-sec">Tagging terbaru</div>
+    <div id="recent"></div>
+  </div>
+</aside>
+
+<div class="map-tools mon-tools">
+  <button class="fab" id="btnLayer" aria-label="Lapisan peta"><svg><use href="#i-layers"/></svg></button>
+  <button class="fab" id="btnFit" aria-label="Tampilkan semua"><svg><use href="#i-expand"/></svg></button>
+</div>
+
+<div class="layer-panel card" id="layerPanel">
+  <div class="lp-title">Peta dasar</div>
+  <div class="seg" id="segBase"><button data-base="Satelit">Satelit</button><button data-base="Peta">Peta jalan</button></div>
+  <div class="lp-title">Tampilkan</div>
+  <label class="tog"><span><i class="sw-dot pt"></i>Titik tagging</span><input type="checkbox" id="tgPoints"><b></b></label>
+  <label class="tog"><span><i class="sw-dot sm"></i>Batas sampel</span><input type="checkbox" id="tgSamples"><b></b></label>
+  <label class="tog"><span><i class="sw-dot sg"></i>Sub-grid 3×3</span><input type="checkbox" id="tgGrid"><b></b></label>
+</div>
+
+<section class="page" id="pageMonSet" aria-hidden="true">
+  <header class="page-head">
+    <button class="icon-btn" data-close="pageMonSet" aria-label="Tutup"><svg><use href="#i-x"/></svg></button>
+    <div><div class="page-title">Sumber Data</div><div class="page-sub">Halaman ini hanya untuk melihat</div></div>
+  </header>
+  <div class="page-body">
+    <div class="section">
+      <label class="field"><span>URL Google Apps Script</span><input type="url" id="mUrl" placeholder="https://script.google.com/macros/s/…/exec"></label>
+      <label class="field"><span>Muat ulang otomatis</span>
+        <select id="mAuto"><option value="0">Mati</option><option value="30">Setiap 30 detik</option><option value="60">Setiap 1 menit</option><option value="300">Setiap 5 menit</option></select></label>
+      <p class="hint">Dengan URL ini, halaman monitoring menampilkan data <b>semua petugas</b> dari Google Sheets. Kalau dikosongkan, yang tampil hanya data yang tersimpan di perangkat ini.</p>
+    </div>
+    <p class="hint center"><a href="./">← Kembali ke aplikasi tagging</a></p>
+  </div>
+  <footer class="page-foot"><button class="btn btn-primary btn-lg btn-block" id="btnMonSave">Simpan</button></footer>
+</section>
+
+<div class="viewer" id="viewer"><img id="viewerImg" alt=""><button class="icon-btn light" id="viewerClose" aria-label="Tutup"><svg><use href="#i-x"/></svg></button></div>
+<div id="toast"></div>
+
+<svg width="0" height="0" style="position:absolute;width:0;height:0" aria-hidden="true">
+  <defs>
+    <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z" fill="none" stroke="currentColor" stroke-width="1.6"/></symbol>
+    <symbol id="i-layers" viewBox="0 0 24 24"><path d="m12 3 9 5-9 5-9-5 9-5Z M3 13l9 5 9-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></symbol>
+    <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.3-5.7M20 4v5h-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-expand" viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-nav" viewBox="0 0 24 24"><path d="m3 11 18-8-8 18-2-8-8-2Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
+    <symbol id="i-camera" viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><circle cx="12" cy="13.5" r="3.5" fill="none" stroke="currentColor" stroke-width="2"/></symbol>
+  </defs>
+</svg>
+
+<script src="vendor/leaflet/leaflet.js"></script>
+<script src="data/grid.js"></script>
+<script src="config.js"></script>
+<script src="js/monitor.js"></script>
+</body>
+</html>
