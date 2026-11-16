@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f766e">
+<title>Geotag Grid</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="vendor/leaflet/leaflet.css">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- ============ LAYAR UTAMA (PETA) ============ -->
+<div id="map"></div>
+
+<div class="topbar">
+  <div class="brand card">
+    <img src="icon.svg" alt="" width="30" height="30">
+    <div><div class="brand-title">Geotag Grid</div><div class="brand-sub" id="progressText">0/72 grid</div></div>
+  </div>
+  <button class="fab" id="btnSettings" aria-label="Pengaturan"><svg><use href="#i-gear"/></svg></button>
+</div>
+
+<div class="map-tools">
+  <button class="fab" id="btnSamples" aria-label="Daftar sampel"><svg><use href="#i-grid"/></svg></button>
+  <button class="fab" id="btnLayer" aria-label="Lapisan peta"><svg><use href="#i-layers"/></svg></button>
+  <button class="fab" id="btnCenter" aria-label="Posisi saya"><svg><use href="#i-crosshair"/></svg></button>
+</div>
+
+<div class="layer-panel card" id="layerPanel">
+  <div class="lp-title">Peta dasar</div>
+  <div class="seg" id="segBase"><button data-base="Satelit">Satelit</button><button data-base="Peta">Peta jalan</button></div>
+  <div class="lp-title">Tampilkan</div>
+  <label class="tog"><span><i class="sw-dot pt"></i>Titik tagging</span><input type="checkbox" id="tgPoints"><b></b></label>
+  <label class="tog"><span><i class="sw-dot sm"></i>Batas sampel</span><input type="checkbox" id="tgSamples"><b></b></label>
+  <label class="tog"><span><i class="sw-dot sg"></i>Sub-grid 3×3</span><input type="checkbox" id="tgGrid"><b></b></label>
+</div>
+
+<div class="dock card">
+  <div class="dock-info">
+    <span class="dot" id="gpsDot"></span>
+    <div class="dock-text">
+      <div class="dock-title" id="dockTitle">Mencari GPS…</div>
+      <div class="dock-sub" id="dockSub">Izinkan akses lokasi di browser</div>
+    </div>
+    <span class="pill" id="accPill">—</span>
+  </div>
+  <div class="dock-actions">
+    <button class="btn btn-primary btn-lg" id="btnTag"><svg><use href="#i-pin"/></svg><span id="btnTagText">Tag di sini</span></button>
+    <button class="btn btn-soft btn-lg btn-icon" id="btnData" aria-label="Data"><svg><use href="#i-list"/></svg><span class="badge-count" id="nData">0</span></button>
+  </div>
+</div>
+
+<!-- ============ HALAMAN FORM ============ -->
+<section class="page" id="pageForm" aria-hidden="true">
+  <header class="page-head">
+    <button class="icon-btn" data-close="pageForm" aria-label="Tutup"><svg><use href="#i-x"/></svg></button>
+    <div><div class="page-title" id="formTitle">Tagging Grid</div><div class="page-sub" id="formSub">—</div></div>
+  </header>
+  <div class="page-body">
+
+    <div class="section">
+      <div class="section-title"><svg><use href="#i-pin"/></svg>Lokasi</div>
+      <label class="field"><span>Grid</span><select id="fGrid"></select></label>
+      <div class="kv">
+        <div><span>Koordinat</span><b id="lCoord">—</b></div>
+        <div><span>Akurasi</span><b id="lAcc">—</b></div>
+        <div><span>Posisi</span><b id="lPos">—</b></div>
+      </div>
+      <button class="btn btn-soft btn-block" id="btnCapture"><svg><use href="#i-crosshair"/></svg><span id="captureText">Perbarui lokasi</span></button>
+    </div>
+
+    <div class="section">
+      <div class="section-title"><svg><use href="#i-camera"/></svg>Foto <span class="muted" id="photoCount"></span></div>
+      <div class="photos" id="photoGrid"></div>
+      <input type="file" id="photoInput" accept="image/*" capture="environment" hidden>
+      <p class="hint">Foto otomatis diberi keterangan grid, koordinat, dan waktu.</p>
+    </div>
+
+    <div class="section">
+      <div class="section-title"><svg><use href="#i-clip"/></svg>Kuesioner</div>
+      <label class="field"><span>Jenis tanaman</span>
+        <input type="text" id="fTanaman" list="dlTanaman" placeholder="Ketik jenis tanaman" autocomplete="off"></label>
+      <datalist id="dlTanaman"></datalist>
+      <label class="field"><span>Jenis lahan</span><select id="f_jenis_lahan" data-key="jenis_lahan"></select></label>
+      <label class="field"><span>Fase tumbuh</span><select id="f_fase_tumbuh" data-key="fase_tumbuh"></select></label>
+      <label class="field"><span>Topografi</span><select id="f_topografi" data-key="topografi"></select></label>
+      <label class="field"><span>Pola penanaman</span><select id="f_pola_tanam" data-key="pola_tanam"></select></label>
+      <label class="field"><span>Catatan <em>opsional</em></span><textarea id="fCatatan" rows="3" placeholder="Tulis catatan…"></textarea></label>
+    </div>
+  </div>
+  <footer class="page-foot"><button class="btn btn-primary btn-lg btn-block" id="btnSave"><svg><use href="#i-check"/></svg>Simpan</button></footer>
+</section>
+
+<!-- ============ HALAMAN DATA ============ -->
+<section class="page" id="pageData" aria-hidden="true">
+  <header class="page-head">
+    <button class="icon-btn" data-close="pageData" aria-label="Tutup"><svg><use href="#i-x"/></svg></button>
+    <div><div class="page-title">Data Tersimpan</div><div class="page-sub">Tersimpan di perangkat ini</div></div>
+  </header>
+  <div class="page-body">
+    <div class="stats">
+      <div class="stat"><b id="stData">0</b><span>data</span></div>
+      <div class="stat"><b id="stGrid">0</b><span>grid di-tag</span></div>
+      <div class="stat"><b id="stFoto">0</b><span>foto</span></div>
+      <div class="stat" id="stPendBox"><b id="stPend">0</b><span>belum terkirim</span></div>
+    </div>
+    <button class="btn btn-primary btn-block" id="btnSync"><svg><use href="#i-cloud"/></svg><span id="syncText">Kirim ke Google Sheets</span></button>
+    <div class="row3">
+      <button class="btn btn-soft" id="btnZip"><svg><use href="#i-download"/></svg>ZIP + foto</button>
+      <button class="btn btn-soft" id="btnCsv"><svg><use href="#i-download"/></svg>CSV</button>
+      <button class="btn btn-soft" id="btnGeojson"><svg><use href="#i-download"/></svg>GeoJSON</button>
+    </div>
+    <div id="recList"></div>
+  </div>
+</section>
+
+<!-- ============ HALAMAN SAMPEL ============ -->
+<section class="page" id="pageSamples" aria-hidden="true">
+  <header class="page-head">
+    <button class="icon-btn" data-close="pageSamples" aria-label="Tutup"><svg><use href="#i-x"/></svg></button>
+    <div><div class="page-title">Sampel Grid</div><div class="page-sub" id="samplesSub">—</div></div>
+  </header>
+  <div class="page-body"><div id="sampleList" class="sample-list"></div></div>
+</section>
+
+<!-- ============ HALAMAN PENGATURAN ============ -->
+<section class="page" id="pageSettings" aria-hidden="true">
+  <header class="page-head">
+    <button class="icon-btn" data-close="pageSettings" aria-label="Tutup"><svg><use href="#i-x"/></svg></button>
+    <div><div class="page-title">Pengaturan</div><div class="page-sub">Berlaku di perangkat ini</div></div>
+  </header>
+  <div class="page-body">
+    <div class="section">
+      <label class="field"><span>Nama petugas</span><input type="text" id="sPetugas" placeholder="Nama lengkap"></label>
+      <label class="field"><span>Batas akurasi GPS yang baik</span>
+        <select id="sAkurasi"><option value="5">5 meter</option><option value="10">10 meter</option><option value="15">15 meter</option><option value="20">20 meter</option><option value="30">30 meter</option></select></label>
+    </div>
+    <div class="section">
+      <div class="section-title"><svg><use href="#i-cloud"/></svg>Google Sheets <em class="muted">opsional</em></div>
+      <label class="field"><span>URL Google Apps Script</span><input type="url" id="sUrl" placeholder="https://script.google.com/macros/s/…/exec"></label>
+      <p class="hint">Jika diisi, data dan foto langsung dikirim ke Google Sheets dan Google Drive setiap kali ada internet.</p>
+    </div>
+    <p class="hint center">Data tersimpan di browser perangkat ini. Jangan hapus data browser sebelum data diekspor atau dikirim.<br>Versi <span id="ver"></span></p>
+  </div>
+  <footer class="page-foot"><button class="btn btn-primary btn-lg btn-block" id="btnSetSave">Simpan pengaturan</button></footer>
+</section>
+
+<div class="viewer" id="viewer"><img id="viewerImg" alt=""><button class="icon-btn light" id="viewerClose" aria-label="Tutup"><svg><use href="#i-x"/></svg></button></div>
+<div id="toast"></div>
+
+<!-- ikon -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 22s7-6.2 7-12a7 7 0 1 0-14 0c0 5.8 7 12 7 12Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><circle cx="12" cy="10" r="2.5" fill="none" stroke="currentColor" stroke-width="2"/></symbol>
+    <symbol id="i-list" viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z" fill="none" stroke="currentColor" stroke-width="1.6"/></symbol>
+    <symbol id="i-layers" viewBox="0 0 24 24"><path d="m12 3 9 5-9 5-9-5 9-5Z M3 13l9 5 9-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
+    <symbol id="i-crosshair" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="2" fill="currentColor"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-camera" viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><circle cx="12" cy="13.5" r="3.5" fill="none" stroke="currentColor" stroke-width="2"/></symbol>
+    <symbol id="i-clip" viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="17" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M9 4h6v3H9zM8.5 12h7M8.5 16h5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-cloud" viewBox="0 0 24 24"><path d="M7 18a5 5 0 1 1 .9-9.9A6 6 0 0 1 19 10a4 4 0 0 1-1 8H7Z M12 11v6M9.5 13.5 12 11l2.5 2.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 4v11M7 10.5l5 5 5-5M5 20h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></symbol>
+    <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="17" height="17" rx="2.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M9.2 3.5v17M14.8 3.5v17M3.5 9.2h17M3.5 14.8h17" stroke="currentColor" stroke-width="1.6"/></symbol>
+    <symbol id="i-nav" viewBox="0 0 24 24"><path d="m3 11 18-8-8 18-2-8-8-2Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
+  </defs>
+</svg>
+
+<script src="vendor/leaflet/leaflet.js"></script>
+<script src="data/grid.js"></script>
+<script src="js/zip.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
