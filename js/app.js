@@ -1,5 +1,5 @@
 "use strict";
-const APP_VERSION = "2.3.0";
+const APP_VERSION = "2.4.0";
 const OPSI = {
   jenis_lahan: ["Sawah Rawa", "Sawah Pasang Surut", "Sawah Irigasi", "Sawah Tadah Hujan", "Bukan Sawah"],
   fase_tumbuh: ["Persiapan Lahan", "Vegetatif Awal", "Vegetatif Akhir", "Generatif", "Panen", "Bukan Padi", "Bukan Sawah"],
@@ -86,7 +86,7 @@ const SAMPLES = (() => {
   const m = {};
   GRID_FEATS.forEach(f => {
     const p = f.properties, n = p.id_polygon_asal;
-    const o = m[n] || (m[n] = { no: n, subs: [], bbox: [1e9, 1e9, -1e9, -1e9], induk: null, desa: null, kec: null });
+    const o = m[n] || (m[n] = { no: n, subs: [], bbox: [1e9, 1e9, -1e9, -1e9], induk: null, desa: null, kec: null, jenis: p.jenis_sampel || null });
     o.subs.push(p.id_sub);
     o.bbox = [Math.min(o.bbox[0], f.bbox[0]), Math.min(o.bbox[1], f.bbox[1]), Math.max(o.bbox[2], f.bbox[2]), Math.max(o.bbox[3], f.bbox[3])];
     if (p.sub_baris === 2 && p.sub_kolom === 2) { o.induk = p.id_induk; o.desa = p.nmdesa_right; o.kec = p.nmkec_right; }
@@ -547,7 +547,7 @@ function renderSamples() {
     return `<button class="sample ${done === sm.subs.length ? "done" : ""}" data-sample="${sm.no}">
       <div class="mini">${order.map(id => `<i class="${tg.has(id) ? "on" : ""} ${here && here.inside && here.feat.properties.id_sub === id ? "here" : ""}"></i>`).join("")}</div>
       <div class="s-main">
-        <div class="s-title">Sampel ${sm.no}${done === sm.subs.length ? `<span class="tag ok">selesai</span>` : ""}</div>
+        <div class="s-title">Sampel ${sm.no}${done === sm.subs.length ? `<span class="tag ok">selesai</span>` : ""}${sm.jenis ? `<span class="tag ${sm.jenis === "Utama" ? "main" : ""}">${esc(sm.jenis)}</span>` : ""}</div>
         <div class="s-sub">${done}/${sm.subs.length} sub-grid · ${n} titik${jarak}${sm.desa ? `<br>${esc(sm.desa)}, ${esc(sm.kec || "")}` : ""}</div>
         <div class="bar"><i style="width:${done / sm.subs.length * 100}%"></i></div>
       </div>

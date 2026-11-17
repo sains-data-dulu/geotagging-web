@@ -38,7 +38,7 @@ const SAMPLES = (() => {
   const m = {};
   GRID_FEATS.forEach(f => {
     const p = f.properties, n = p.id_polygon_asal;
-    const o = m[n] || (m[n] = { no: n, subs: [], bbox: [1e9, 1e9, -1e9, -1e9], desa: null, kec: null });
+    const o = m[n] || (m[n] = { no: n, subs: [], bbox: [1e9, 1e9, -1e9, -1e9], desa: null, kec: null, jenis: p.jenis_sampel || null });
     o.subs.push(p.id_sub);
     o.bbox = [Math.min(o.bbox[0], f.bbox[0]), Math.min(o.bbox[1], f.bbox[1]), Math.max(o.bbox[2], f.bbox[2]), Math.max(o.bbox[3], f.bbox[3])];
     if (p.sub_baris === 2 && p.sub_kolom === 2) { o.desa = p.nmdesa_right; o.kec = p.nmkec_right; }
@@ -99,7 +99,7 @@ const gridLayer = L.geoJSON(window.GRID, {
       const p = f.properties, rs = view().filter(r => r.id_sub === p.id_sub);
       L.popup({ closeButton: false }).setLatLng(layer.getBounds().getCenter()).setContent(
         `<div class="pop-title">Grid ${esc(p.id_sub)}</div>
-         <div class="pop-sub">Sampel ${p.id_polygon_asal} · ${esc(p.sub_posisi.replace("_", " "))}</div>
+         <div class="pop-sub">Sampel ${p.id_polygon_asal}${p.jenis_sampel ? " (" + esc(p.jenis_sampel) + ")" : ""} · ${esc(p.sub_posisi.replace("_", " "))}</div>
          <div class="pop-kv">${rs.length ? rs.map(r => `<b class="t-ok">✓</b> ${esc(r.petugas || "-")} · ${fmtWaktu(r.waktu)}<br><span>${esc(r.jenis_tanaman)} · ${esc(r.jenis_lahan)}</span>`).join("<br>") : "<span>Belum di-tag</span>"}</div>`).openOn(map);
     });
   }
@@ -175,7 +175,7 @@ function render() {
     return `<button class="sample ${done === sm.subs.length ? "done" : ""}" data-sample="${sm.no}">
       <div class="mini">${order.map(id => `<i class="${tg.has(id) ? "on" : ""}"></i>`).join("")}</div>
       <div class="s-main">
-        <div class="s-title">Sampel ${sm.no}${done === sm.subs.length ? `<span class="tag ok">selesai</span>` : ""}</div>
+        <div class="s-title">Sampel ${sm.no}${done === sm.subs.length ? `<span class="tag ok">selesai</span>` : ""}${sm.jenis ? `<span class="tag ${sm.jenis === "Utama" ? "main" : ""}">${esc(sm.jenis)}</span>` : ""}</div>
         <div class="s-sub">${done}/${sm.subs.length} sub-grid · ${n} titik${last ? " · terakhir " + fmtWaktu(last) : ""}${sm.desa ? `<br>${esc(sm.desa)}, ${esc(sm.kec || "")}` : ""}</div>
         <div class="bar"><i style="width:${done / sm.subs.length * 100}%"></i></div>
       </div>

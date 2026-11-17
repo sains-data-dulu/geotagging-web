@@ -1,6 +1,6 @@
 # Geotagging Grid Sampel
 
-Web untuk geotagging di lapangan. Peta menampilkan 72 grid (8 polygon sampel × 9 sub-grid).
+Web untuk geotagging di lapangan. Peta menampilkan 99 grid (11 sampel × 9 sub-grid). Sampel 1–8 adalah sampel awal; sampel 9–11 adalah tambahan (`sampel_baru_split3x3.gpkg`).
 Petugas berjalan ke grid, menekan **Tag di sini**, mengambil foto, lalu mengisi kuesioner.
 
 Data yang direkam:
@@ -22,7 +22,7 @@ Web ini sepenuhnya statis, jadi bisa di-hosting gratis di **GitHub Pages**.
 | `js/app.js` | Logika aplikasi: peta, GPS, foto, kuesioner, data, ekspor, kirim |
 | `js/zip.js` | Pembuat file ZIP untuk ekspor foto |
 | `js/monitor.js` | Logika halaman monitoring |
-| `data/grid.js` | Data 72 grid (hasil `selected_sample_split3x3.gpkg`) |
+| `data/grid.js` | Data 99 grid: sampel 1–8 dari `selected_sample_split3x3.gpkg`, sampel 9–11 dari `sampel_baru_split3x3.gpkg` |
 | `vendor/leaflet/` | Library peta Leaflet 1.9.4 (disertakan, tanpa CDN) |
 | `sw.js`, `manifest.webmanifest`, `icon.svg` | Agar bisa dipasang di layar utama HP dan tetap bisa dibuka saat sinyal lemah |
 | `apps-script/Code.gs` | Opsional: penerima data ke Google Sheets |
@@ -55,7 +55,7 @@ GPS di browser **hanya berfungsi lewat HTTPS**. GitHub Pages sudah memakai HTTPS
    - **Sub-grid 3×3**: garis putus-putus putih berarti belum di-tag, isian hijau berarti sudah di-tag, dan kuning berarti grid yang sedang dipilih.
    - **Titik tagging**: ungu jika berada di dalam grid, oranye jika di luar grid. Ketuk titik untuk melihat foto dan jawaban kuesioner, atau untuk mengubah datanya.
    - Tombol lapisan (ikon tumpukan) dipakai untuk mengganti peta satelit/jalan dan untuk menyalakan atau mematikan ketiga lapisan di atas.
-   - Tombol **Sampel** (ikon grid) membuka daftar 8 sampel. Setiap sampel menampilkan mini-grid 3×3 berisi sub-grid yang sudah di-tag, progres, jumlah titik, dan jaraknya dari posisi Anda. Ketuk salah satu sampel untuk menuju ke sana.
+   - Tombol **Sampel** (ikon grid) membuka daftar semua sampel. Setiap sampel menampilkan mini-grid 3×3 berisi sub-grid yang sudah di-tag, progres, jumlah titik, dan jaraknya dari posisi Anda. Ketuk salah satu sampel untuk menuju ke sana.
 
 Aturan konsistensi otomatis pada kuesioner:
 - Jika **Jenis lahan = Bukan Sawah**, *Fase tumbuh* dan *Pola penanaman* otomatis diisi **Bukan Sawah**.
@@ -117,7 +117,7 @@ Halaman ini hanya untuk memantau; tidak ada tombol tagging.
 
 Yang ditampilkan:
 - Peta berisi grid, batas sampel, dan titik tagging dari **semua petugas**. Data diambil dari Google Sheets.
-- Ringkasan: jumlah titik, sub-grid yang sudah di-tag (x/72), sampel yang selesai, jumlah petugas, dan persentase progres.
+- Ringkasan: jumlah titik, sub-grid yang sudah di-tag, sampel yang selesai, jumlah petugas, dan persentase progres.
 - Filter per petugas.
 - Daftar sampel dengan mini-grid 3×3 dan waktu tagging terakhir. Ketuk sampel untuk zoom ke sana.
 - Daftar tagging terbaru. Ketuk salah satunya untuk melihat jawaban kuesioner dan link fotonya di Google Drive.
@@ -144,4 +144,8 @@ Di Google Sheets ada tambahan kolom `foto_url` dan `diterima_server`.
 ## 7. Mengganti grid
 
 Jika ingin memakai grid lain, buat ulang `data/grid.js` dari GPKG/GeoJSON (EPSG:4326). Isinya `window.GRID = <FeatureCollection>`.
-Setiap feature wajib memiliki properti `id_sub`, `id_polygon_asal`, dan `sub_posisi`.
+Setiap feature wajib memiliki properti `id_sub`, `id_polygon_asal`, dan `sub_posisi`. Properti `jenis_sampel` bersifat opsional; jika ada, nilainya ditampilkan di daftar sampel.
+
+`id_sub` harus unik. Jika menambah sampel baru, lanjutkan nomornya (misalnya sampel berikutnya = 12, dengan `id_sub` `12_11` … `12_33`). Jangan memakai ulang nomor sampel yang sudah ada, karena data tagging dicocokkan berdasarkan `id_sub`.
+
+Setiap kali `data/grid.js` diganti, naikkan juga angka `?v=` pada `index.html` dan `monitor.html` (misalnya `?v=2.4` → `?v=2.5`). Tanpa itu, browser petugas bisa tetap memakai grid lama.

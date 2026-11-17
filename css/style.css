@@ -238,3 +238,5 @@ input:focus,select:focus,textarea:focus{border-color:var(--pri);background:#fff;
   .monitor .map-tools,.monitor .layer-panel{bottom:24px}
   .desk-only{display:grid!important}
 }
+.tag.main{background:#e0e7ff;color:#3730a3}
+.s-title{flex-wrap:wrap}
